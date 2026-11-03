@@ -45,13 +45,18 @@ th,td{border:1px solid var(--line);padding:4px 5px;text-align:center}
 th{background:#eef3f0}
 .hid{display:none}
 .tag{font-size:11px;font-weight:700;color:var(--mut)}
+.top{display:flex;align-items:center;gap:8px;margin:4px 0 2px}
+.top h1{flex:1 1 auto;margin:0}
+.ver{font-size:12px;font-weight:700;color:var(--mut);background:#e6ece9;border-radius:20px;padding:2px 9px}
+.mini{flex:0 0 auto;width:auto;margin:0;padding:7px 12px;font-size:13px;font-weight:700;background:#fff;color:var(--acc);border:1px solid var(--acc);border-radius:20px}
+.mini.hot{background:var(--acc);color:#fff}
 .note{font-size:11.5px;color:var(--mut);margin-top:6px;line-height:1.5}
 .back{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:7px;text-align:center;font-size:12px;color:var(--mut)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>تسجيل أوزان سريع</h1>
+  <div class="top"><h1>تسجيل أوزان سريع</h1><span id="ver" class="ver"></span><button id="upd" class="mini" type="button" hidden>⟳ تحديث</button></div>
   <p class="hint">الثلاث خطوط مرة واحدة — الأوزان + Moisture و FA و FFA.
     الوزن بخانة عشرية واحدة بيتحوّل بخانتين (110.1 → 110.11) زي دايماً.</p>
 
@@ -243,6 +248,26 @@ $('#save').addEventListener('click',async()=>{
 });
 $('#snd').checked=localStorage.getItem('qe_sound')!=='0';
 $('#snd').addEventListener('change',()=>{localStorage.setItem('qe_sound',$('#snd').checked?'1':'0');if($('#snd').checked)beep('ok');});
+/* ---- the version + the update button (the page is cached by the service worker) ---- */
+const VER='v2';
+$('#ver').textContent=VER;
+function initSW(){
+  if(!('serviceWorker' in navigator))return;
+  let reg=null,refreshing=false;
+  const mark=()=>{const u=$('#upd');u.hidden=false;u.classList.add('hot');u.textContent='⟳ تحديث متاح';};
+  navigator.serviceWorker.register('sw.js').then(r=>{reg=r;
+    if(r.waiting&&navigator.serviceWorker.controller)mark();
+    r.addEventListener('updatefound',()=>{const nw=r.installing;if(nw)nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller)mark();});});
+    setInterval(()=>{r.update().catch(()=>{});},60000);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)r.update().catch(()=>{});});
+  }).catch(()=>{});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!refreshing){refreshing=true;location.reload();}});
+  $('#upd').addEventListener('click',()=>{
+    if(reg&&reg.waiting){reg.waiting.postMessage({type:'SKIP_WAITING'});return;}
+    location.replace(location.pathname+'?v='+Date.now());   /* skip the cache */
+  });
+}
+initSW();
 build();
 </script>
 </body>
