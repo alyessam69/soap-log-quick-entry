@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="icon" href="icons/icon-192.png">
 <style>
-:root{--ink:#12211c;--acc:#0b7a4b;--warn:#b23b3b;--line:#c9d6d0;--bg:#f4f7f5;--mut:#5d6f68;--amber:#b8791a}
+:root{--ink:#12211c;--acc:#0b7a4b;--warn:#b23b3b;--line:#c9d6d0;--bg:#f4f7f5;--mut:#5d6f68}
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--ink);padding:12px;padding-bottom:46px}
 .wrap{max-width:680px;margin:0 auto}
@@ -17,70 +17,56 @@ h1{font-size:19px;margin:4px 0 2px}
 p.hint{font-size:12.5px;color:var(--mut);margin:0 0 12px;line-height:1.6}
 .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
 label{display:block;font-size:12.5px;font-weight:700;margin:8px 0 4px}
-input,select,textarea{width:100%;padding:10px;font-size:16px;border:1px solid var(--line);border-radius:8px;background:#fff;font-family:inherit}
+input,select{width:100%;padding:10px;font-size:16px;border:1px solid var(--line);border-radius:8px;background:#fff;font-family:inherit}
 .row{display:flex;gap:8px}
 .row>div{flex:1 1 0;min-width:0}
-.num{display:grid;gap:4px;margin-top:2px}
-.num .nums{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px}
-.num .nums span{text-align:center;font-size:11px;font-weight:700;color:var(--mut);background:#eef3f0;border-radius:6px;padding:3px 0}
-.num .boxes{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px}
-.num .boxes input{padding:9px 2px;text-align:center;font-size:15px;border-radius:8px}
-.qc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lnhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:15px;padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.lnhead .tag{font-size:11.5px;font-weight:700;color:var(--mut);background:#eef3f0;border-radius:20px;padding:3px 9px}
+.qc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.qc input{padding:8px 4px;font-size:15px;text-align:center}
+.wlist{display:flex;flex-direction:column;gap:6px}
+.wrow{display:flex;align-items:center;gap:8px}
+.wrow span{flex:0 0 30px;text-align:center;font-size:13px;font-weight:700;color:var(--mut);background:#eef3f0;border-radius:6px;padding:6px 0}
+.wrow input{padding:9px 10px;font-size:16px;text-align:center}
+.wrow input.bad{border-color:var(--warn);background:#fdeaea}
 .avg{display:flex;align-items:center;gap:8px;margin-top:10px}
-.avg label{margin:0;flex:0 0 auto}
+.avg label{margin:0;flex:0 0 auto;font-size:13px}
 .avg input{text-align:center;font-weight:700;background:#eef3f0}
 button{width:100%;padding:14px;font-size:17px;font-weight:700;border:0;border-radius:10px;background:var(--acc);color:#fff;margin-top:10px}
 button.sec{background:#eef3f0;color:var(--ink);border:1px solid var(--line);font-size:14.5px;font-weight:700;padding:11px}
 button.warnb{background:#fff;color:var(--warn);border:2px solid var(--warn)}
 button:disabled{opacity:.5}
-.msg{margin-top:10px;padding:10px;border-radius:8px;font-size:13.5px;display:none;line-height:1.6}
+.msg{margin-top:9px;padding:9px 11px;border-radius:8px;font-size:13px;display:none;line-height:1.6}
 .msg.ok{display:block;background:#e4f5ec;border:1px solid #7fbf9d;color:#0b5c38}
 .msg.no{display:block;background:#fdeaea;border:1px solid #dfa0a0;color:#8d2b2b}
 .msg.wn{display:block;background:#fff6e6;border:1px solid #e0b978;color:#8a5a10;font-weight:600}
-table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px}
-th,td{border:1px solid var(--line);padding:5px 6px;text-align:center}
+table{width:100%;border-collapse:collapse;margin-top:6px;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:4px 5px;text-align:center}
 th{background:#eef3f0}
 .hid{display:none}
 .tag{font-size:11px;font-weight:700;color:var(--mut)}
+.note{font-size:11.5px;color:var(--mut);margin-top:6px;line-height:1.5}
 .back{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:7px;text-align:center;font-size:12px;color:var(--mut)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>تسجيل أوزان سريع</h1>
-  <p class="hint">الأوزان + Moisture و FA و FFA في مكان واحد — بتتسجل في التطبيق على طول (الديتا مشفّرة).
+  <p class="hint">الثلاث خطوط مرة واحدة — الأوزان + Moisture و FA و FFA.
     الوزن بخانة عشرية واحدة بيتحوّل بخانتين (110.1 → 110.11) زي دايماً.</p>
 
   <div class="card">
     <div class="row">
       <div><label>الشِفت</label><select id="sh"><option value="1">A — 08:30</option><option value="2">B — 17:30</option><option value="3">C — 00:30</option></select></div>
-      <div><label>الخط</label><select id="ln"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
       <div><label>الدفعة</label><select id="bt"><option value="1">1 (ساعات 1-3)</option><option value="2">2 (ساعات 4-6)</option><option value="3">3 (ساعات 7-8)</option></select></div>
+      <div id="varBox"><label>منتج الخط 3</label><select id="vr"><option value="R">Royal (6 قالب)</option><option value="L">Lemon (5 قالب)</option></select></div>
     </div>
-    <div id="varBox" class="hid"><label>منتج الخط 3</label><select id="vr"><option value="R">Royal (6 قالب)</option><option value="L">Lemon (5 قالب)</option></select></div>
   </div>
 
-  <div class="card">
-    <label>تحاليل الخِط</label>
-    <div class="qc">
-      <div><input id="moi" type="number" step="0.01" inputmode="decimal" placeholder="Moisture"></div>
-      <div><input id="faq" type="number" step="0.01" inputmode="decimal" placeholder="FA"></div>
-      <div><input id="ffa" type="number" step="0.01" inputmode="decimal" placeholder="FFA"></div>
-    </div>
-    <div class="tag" style="margin-top:6px">الم Prize: القيم دي بتظهر في إعدادات الخط في التطبيق</div>
-  </div>
+  <div id="lines"></div>
 
   <div class="card">
-    <label>الأوزان <span id="gm" class="tag"></span></label>
-    <div class="num">
-      <div class="nums" id="nums"></div>
-      <div class="boxes" id="boxes"></div>
-    </div>
-    <div class="avg"><label>المتوسط (Avgr)</label><input id="avg" readonly></div>
-    <div class="msg" id="warn"></div>
-  </div>
-
-  <div class="card">
+    <div class="msg" id="allwarn"></div>
     <button class="sec" id="prev">معاينة قبل الحفظ</button>
     <button id="save">حفظ في التطبيق</button>
     <div class="msg" id="msg"></div>
@@ -94,10 +80,14 @@ th{background:#eef3f0}
 <div class="back">الداتا مشفّرة AES-GCM · PIN 2780</div>
 <script>
 const CLOUD='https://soap-lab-shift-sync-default-rtdb.europe-west1.firebasedatabase.app/lab/soap-log-7c4e19a83b2f46d0a95e17cb.json';
-const PIN_DEFAULT='2780';
-const COUNTS={1:8,2:10,3:6};          /* عدد الصابون لكل خط */
-const LC={1:5,2:6};                   /* الخط 3: lemon=5 ، royal=6 */
+const PIN='2780';
+const LINES=[
+ {ln:1,title:'Savannah',n:8},
+ {ln:2,title:'Savannah (771)',n:10},
+ {ln:3,title:'',n:6}          /* الخط 3: royal=6 ، lemon=5 */
+];
 const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
 const b64=b=>btoa(String.fromCharCode.apply(null,new Uint8Array(b)));
 const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 const fixW=v=>{v=String(v==null?'':v).trim();if(/^-?\d+\.\d$/.test(v))return v+'1';if(/^-?\d+$/.test(v))return v+'.01';return v;};
@@ -110,91 +100,98 @@ async function load(){
   if(!r.ok)throw new Error('تعذر قراءة الملف ('+r.status+')');
   const b=await r.json();
   if(!b||b.enc!=='aesgcm')throw new Error('الملف مش مشفّر');
-  const k=await key(b.salt,PIN_DEFAULT);
+  const k=await key(b.salt,PIN);
   const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(b.iv)},k,unb64(b.ct));
   return JSON.parse(new TextDecoder().decode(pt));
 }
 async function save(plain){
   const salt=b64(crypto.getRandomValues(new Uint8Array(16)));
   const iv=crypto.getRandomValues(new Uint8Array(12));
-  const k=await key(salt,PIN_DEFAULT);
+  const k=await key(salt,PIN);
   const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify(plain)));
   const out={v:2,sv:2,enc:'aesgcm',salt:salt,iv:b64(iv),ct:b64(new Uint8Array(ct))};
   const r=await fetch(CLOUD,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(out)});
   if(!r.ok)throw new Error('الكتابة رفضت ('+r.status+')');
 }
-function count(){
-  const ln=$('#ln').value;
-  if(ln==='3')return $('#vr').value==='L'?LC[1]:LC[2];
-  return COUNTS[ln];
-}
-function buildBoxes(){
-  const n=count();
-  $('#nums').innerHTML=[...Array(n)].map((_,i)=>'<span>'+(i+1)+'</span>').join('');
-  $('#boxes').innerHTML=[...Array(n)].map((_,i)=>'<input id="w'+i+'" type="text" inputmode="decimal" placeholder="—">').join('');
-  $('#gm').textContent='';
-  [...$('#boxes').children].forEach(b=>{
-    b.addEventListener('blur',()=>{
-      const v=b.value.trim();if(v&&/^-?\d+(\.\d+)?$/.test(v)){const f=fixW(v);if(f!==v){b.value=f;calc();}}
-    });
+function lineN(ln){if(ln===3)return $('#vr').value==='L'?5:6;return LINES.find(l=>l.ln===ln).n;}
+function lineTitle(ln){const t=LINES.find(l=>l.ln===ln).title;if(ln===3)return $('#vr').value==='L'?'Lemon Blossom & Orange':'Royal (90-10)';return t;}
+function build(){
+  $('#lines').innerHTML=LINES.map(L=>{
+    const n=lineN(L.ln);
+    return `<div class="card" data-ln="${L.ln}">
+      <div class="lnhead"><b>الخط ${L.ln}</b> — <span id="t${L.ln}">${lineTitle(L.ln)}</span><span class="tag">${n} قالب</span></div>
+      <div class="qc">
+        <div><input class="moi" data-ln="${L.ln}" type="text" inputmode="decimal" placeholder="Moisture"></div>
+        <div><input class="faq" data-ln="${L.ln}" type="text" inputmode="decimal" placeholder="FA"></div>
+        <div><input class="ffa" data-ln="${L.ln}" type="text" inputmode="decimal" placeholder="FFA"></div>
+      </div>
+      <div class="wlist">${[...Array(n)].map((_,i)=>`<div class="wrow"><span>${i+1}</span><input class="w" data-ln="${L.ln}" data-i="${i}" type="text" inputmode="decimal" placeholder="—"></div>`).join('')}</div>
+      <div class="avg"><label>المتوسط (Avgr)</label><input class="avgv" data-ln="${L.ln}" readonly></div>
+      <div class="msg wn wl" data-ln="${L.ln}"></div>
+    </div>`;}).join('');
+  $$('.w').forEach(b=>{
+    b.addEventListener('blur',()=>{const v=b.value.trim();if(v&&/^-?\d+(\.\d+)?$/.test(v)){const f=fixW(v);if(f!==v){b.value=f;calc();}}});
     b.addEventListener('input',calc);
   });
+  $$('.moi,.faq,.ffa').forEach(i=>i.addEventListener('input',calc));
   calc();
 }
-function weights(){
-  const n=count(),out=[];
-  for(let i=0;i<n;i++){const v=$('#w'+i).value.trim();out.push(v);}
-  return out;
-}
+function weightsOf(ln){return $$('.w[data-ln="'+ln+'"]').map(b=>b.value.trim());}
 function calc(){
-  const v=weights().filter(x=>x!=='').map(parseFloat).filter(x=>!isNaN(x));
-  $('#avg').value=v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2):'';
-  const missing=weights().map((x,i)=>x===''?i+1:0).filter(x=>x);
-  const w=$('#warn');
-  if(missing.length){
-    w.className='msg wn';
-    w.textContent='⚠️ ناقص وزن لـ '+missing.length+' قالب (رقم '+missing.join('، ')+') — لازم تكتبهم كلهم قبل الحفظ';
-  }else{w.className='msg';w.textContent='';}
-  return missing;
+  let all=[];
+  LINES.forEach(L=>{
+    const ws=weightsOf(L.ln);
+    const nums=ws.filter(x=>x!=='').map(parseFloat).filter(x=>!isNaN(x));
+    const av=$$('.avgv[data-ln="'+L.ln+'"]')[0];
+    if(av)av.value=nums.length?(nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(2):'';
+    const miss=ws.map((x,i)=>x===''?i+1:0).filter(x=>x);
+    $$('.w[data-ln="'+L.ln+'"]').forEach((b,i)=>b.classList.toggle('bad',ws[i]===''));
+    const w=$$('.wl[data-ln="'+L.ln+'"]')[0];
+    if(w){if(miss.length){w.className='msg wn wl';w.textContent='⚠️ ناقص وزن لـ '+miss.length+' قالب (رقم '+miss.join('، ')+')';}else{w.className='msg wl';w.textContent='';}}
+    if(miss.length)all.push('الخط '+L.ln+' ناقصه '+miss.length+' وزن (رقم '+miss.join('، ')+')');
+  });
+  const aw=$('#allwarn');
+  if(all.length){aw.className='msg wn';aw.textContent='⚠️ '+all.join(' — ')+' — لازم تكتبهم كلهم قبل الحفظ';}
+  else{aw.className='msg';aw.textContent='';}
+  return all;
 }
 function bucket(id){const v=/l3/.test(id)?$('#vr').value:'';let m=id.match(/s(\d)b\d/);if(m)return 'S'+m[1]+v;m=id.match(/^[a-z]+(\d)l\d/);if(m)return 'S'+m[1]+v;return 'G'+v;}
 function rows(){
-  const sh=$('#sh').value,ln=$('#ln').value,bt=$('#bt').value,out=[];
-  weights().forEach((v,i)=>{if(v!=='')out.push({id:'l'+ln+'s'+sh+'b'+bt+'_c'+i,val:v});});
-  const q={};
-  const moi=$('#moi').value.trim(),faq=$('#faq').value.trim(),ffa=$('#ffa').value.trim();
-  if(moi!=='')q['moi'+sh+'l'+ln]=moi;
-  if(faq!=='')q['faq'+sh+'l'+ln]=faq;
-  if(ffa!=='')q['ffa'+sh+'l'+ln]=ffa;
-  for(const k in q)out.push({id:k,val:q[k]});
+  const sh=$('#sh').value,bt=$('#bt').value,out=[];
+  LINES.forEach(L=>{
+    weightsOf(L.ln).forEach((v,i)=>{if(v!=='')out.push({id:'l'+L.ln+'s'+sh+'b'+bt+'_c'+i,val:v,ln:L.ln});});
+    const moi=$$('.moi[data-ln="'+L.ln+'"]')[0].value.trim();
+    const faq=$$('.faq[data-ln="'+L.ln+'"]')[0].value.trim();
+    const ffa=$$('.ffa[data-ln="'+L.ln+'"]')[0].value.trim();
+    if(moi!=='')out.push({id:'moi'+sh+'l'+L.ln,val:moi,ln:L.ln});
+    if(faq!=='')out.push({id:'faq'+sh+'l'+L.ln,val:faq,ln:L.ln});
+    if(ffa!=='')out.push({id:'ffa'+sh+'l'+L.ln,val:ffa,ln:L.ln});
+  });
   return out;
 }
 function say(txt,cls){const m=$('#msg');m.className='msg '+cls;m.textContent=txt;if(cls==='ok')setTimeout(()=>{m.className='msg'},6000);}
-$('#ln').addEventListener('change',()=>{$('#varBox').classList.toggle('hid',$('#ln').value!=='3');buildBoxes();});
-$('#vr').addEventListener('change',buildBoxes);
-$('#sh').addEventListener('change',buildBoxes);
-$('#bt').addEventListener('change',()=>{calc();});
+['sh','bt','vr'].forEach(id=>$('#'+id).addEventListener('change',()=>{build();}));
 let pending=null,forced=false;
 $('#prev').addEventListener('click',async()=>{
   const b=$('#save');b.disabled=true;
   try{
-    const missing=calc();
-    if(missing.length){say('ناقص '+missing.length+' وزن — كمّل الأول','wn');pending=null;return;}
+    const miss=calc();
+    if(miss.length){say(miss.join(' — ')+' — كمّل الأول','wn');pending=null;return;}
     const plain=await load();const list=rows();
     if(!list.length)throw new Error('مفيش قيم مكتوبة');
-    pending=list.map(x=>{const bk=bucket(x.id);const old=(plain.b[bk]&&plain.b[bk].v&&plain.b[bk].v[x.id])||'-';return{bk,id:x.id,old:old,val:x.val};});
+    pending=list.map(x=>{const bk=bucket(x.id);const old=(plain.b[bk]&&plain.b[bk].v&&plain.b[bk].v[x.id])||'-';return{bk,id:x.id,old:old,val:x.val,ln:x.ln};});
     $('#pvCard').classList.remove('hid');
-    $('#pv').innerHTML='<table><tr><th>الخانة</th><th>قبل</th><th>بعد</th></tr>'+pending.map(r=>'<tr><td>'+r.id+'</td><td>'+r.old+'</td><td><b>'+r.val+'</b></td></tr>').join('')+'</table>';
+    $('#pv').innerHTML='<table><tr><th>الخط</th><th>الخانة</th><th>قبل</th><th>بعد</th></tr>'+pending.map(r=>'<tr><td>'+r.ln+'</td><td>'+r.id+'</td><td>'+r.old+'</td><td><b>'+r.val+'</b></td></tr>').join('')+'</table>';
     say('المعاينة جاهزة ('+pending.length+' قيمة) - اضغط حفظ','ok');
   }catch(e){say(e.message,'no');pending=null;}
   b.disabled=false;
 });
 $('#save').addEventListener('click',async()=>{
-  const missing=calc();
-  if(missing.length&&!forced){
+  const miss=calc();
+  if(miss.length&&!forced){
     forced=true;
     $('#save').className='warnb';$('#save').textContent='احفظ رغم النقص';
-    say('⚠️ ناقص '+missing.length+' وزن - لو مفعتش تضغط تاني عشان تحفظ','wn');
+    say('⚠️ '+miss.join(' — ')+' — لو مفعتش تضغط تاني عشان تحفظ','wn');
     return;
   }
   const b=$('#save');b.disabled=true;b.textContent='جاري الحفظ...';
@@ -213,13 +210,12 @@ $('#save').addEventListener('click',async()=>{
     let bad=0;for(const x of list){const bk=bucket(x.id);if(!check.b[bk].v||check.b[bk].v[x.id]!==x.val)bad++;}
     if(bad)throw new Error('بعض القيم مااتكتبتش ('+bad+')');
     say('تم تسجيل '+list.length+' قيمة بنجاح - افتح التطبيق أو استنى 45 ثانية','ok');
-    $('#boxes').innerHTML='';buildBoxes();$('#pvCard').classList.add('hid');
-    $('#moi').value='';$('#faq').value='';$('#ffa').value='';
+    build();$('#pvCard').classList.add('hid');
     forced=false;$('#save').className='';$('#save').textContent='حفظ في التطبيق';
   }catch(e){say(e.message,'no');}
   b.disabled=false;if(b.textContent==='جاري الحفظ...')b.textContent='حفظ في التطبيق';
 });
-buildBoxes();
+build();
 </script>
 </body>
 </html>
