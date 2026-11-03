@@ -80,6 +80,7 @@ th{background:#eef3f0}
       <input type="checkbox" id="snd" style="width:auto;flex:0 0 auto">
       <label for="snd" style="margin:0;font-size:13px">🔔 صوت عند الحفظ</label>
     </div>
+    <button class="sec" id="pull2">⟳ سحب القيم من الـ cloud</button>
     <button class="sec" id="prev">معاينة قبل الحفظ</button>
     <button id="save">حفظ في التطبيق</button>
     <div class="msg" id="msg"></div>
@@ -274,8 +275,11 @@ $('#save').addEventListener('click',async()=>{
 });
 $('#snd').checked=localStorage.getItem('qe_sound')!=='0';
 $('#snd').addEventListener('change',()=>{localStorage.setItem('qe_sound',$('#snd').checked?'1':'0');if($('#snd').checked)beep('ok');});
+$('#pull2').addEventListener('click',async()=>{const b=$('#pull2');b.disabled=true;b.textContent='جاري السحب...';
+ try{await loadValues();say('تم سحب القيم المحفوظة','ok');beep('ok');}catch(e){say('فشل السحب: '+e.message,'no');beep('no');}
+ b.disabled=false;b.textContent='⟳ سحب القيم من الـ cloud';});
 /* ---- the version + the update button (the page is cached by the service worker) ---- */
-const VER='v4';
+const VER='v5';
 $('#ver').textContent=VER;
 function initSW(){
   if(!('serviceWorker' in navigator))return;
