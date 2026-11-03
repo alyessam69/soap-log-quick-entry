@@ -67,6 +67,10 @@ th{background:#eef3f0}
 
   <div class="card">
     <div class="msg" id="allwarn"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+      <input type="checkbox" id="snd" style="width:auto;flex:0 0 auto">
+      <label for="snd" style="margin:0;font-size:13px">🔔 صوت عند الحفظ</label>
+    </div>
     <button class="sec" id="prev">معاينة قبل الحفظ</button>
     <button id="save">حفظ في التطبيق</button>
     <div class="msg" id="msg"></div>
@@ -170,6 +174,27 @@ function rows(){
   return out;
 }
 function say(txt,cls){const m=$('#msg');m.className='msg '+cls;m.textContent=txt;if(cls==='ok')setTimeout(()=>{m.className='msg'},6000);}
+/* ---- the sound: a short beep when the save is done (and a buzz if it failed) ---- */
+let AC=null;
+function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}catch(e){return null}}
+function beep(kind){
+  if(localStorage.getItem('qe_sound')==='0')return;
+  const c=ac();if(!c)return;
+  try{
+    const o=c.createOscillator(),g=c.createGain(),t=c.currentTime;
+    o.connect(g);g.connect(c.destination);
+    if(kind==='ok'){
+      o.type='sine';o.frequency.setValueAtTime(760,t);o.frequency.setValueAtTime(1040,t+0.10);o.frequency.setValueAtTime(1320,t+0.20);
+      g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.22,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.42);o.start(t);o.stop(t+0.44);
+    }else{
+      o.type='square';o.frequency.setValueAtTime(300,t);o.frequency.setValueAtTime(190,t+0.16);
+      g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.16,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.36);o.start(t);o.stop(t+0.38);
+    }
+  }catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate(kind==='ok'?[45,60,45]:[220,90,220]);}catch(e){}
+}
 ['sh','bt','vr'].forEach(id=>$('#'+id).addEventListener('change',()=>{build();}));
 let pending=null,forced=false;
 $('#prev').addEventListener('click',async()=>{
@@ -187,6 +212,7 @@ $('#prev').addEventListener('click',async()=>{
   b.disabled=false;
 });
 $('#save').addEventListener('click',async()=>{
+  ac();                                     /* unlock the sound inside the tap */
   const miss=calc();
   if(miss.length&&!forced){
     forced=true;
@@ -209,12 +235,14 @@ $('#save').addEventListener('click',async()=>{
     const check=await load();
     let bad=0;for(const x of list){const bk=bucket(x.id);if(!check.b[bk].v||check.b[bk].v[x.id]!==x.val)bad++;}
     if(bad)throw new Error('بعض القيم مااتكتبتش ('+bad+')');
-    say('تم تسجيل '+list.length+' قيمة بنجاح - افتح التطبيق أو استنى 45 ثانية','ok');
+    say('تم تسجيل '+list.length+' قيمة بنجاح - افتح التطبيق أو استنى 45 ثانية','ok');beep('ok');
     build();$('#pvCard').classList.add('hid');
     forced=false;$('#save').className='';$('#save').textContent='حفظ في التطبيق';
-  }catch(e){say(e.message,'no');}
+  }catch(e){say(e.message,'no');beep('no');}
   b.disabled=false;if(b.textContent==='جاري الحفظ...')b.textContent='حفظ في التطبيق';
 });
+$('#snd').checked=localStorage.getItem('qe_sound')!=='0';
+$('#snd').addEventListener('change',()=>{localStorage.setItem('qe_sound',$('#snd').checked?'1':'0');if($('#snd').checked)beep('ok');});
 build();
 </script>
 </body>
