@@ -250,6 +250,9 @@ $('#save').addEventListener('click',async()=>{
   }
   const b=$('#save');b.disabled=true;b.textContent='جاري الحفظ...';
   try{
+    /* the second decimal is added on blur - but also here, so it does not matter how it was typed */
+    $$('.w').forEach(b=>{const v=b.value.trim();if(v&&/^-?\d+(\.\d+)?$/.test(v)){const f=fixW(v);if(f!==v)b.value=f;}});
+    calc();
     const plain=await load();const list=rows();
     if(!list.length)throw new Error('مفيش قيم مكتوبة');
     const now=Date.now();
