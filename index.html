@@ -57,8 +57,9 @@ th{background:#eef3f0}
 <body>
 <div class="wrap">
   <div class="top"><h1>تسجيل أوزان سريع</h1><span id="ver" class="ver"></span><button id="upd" class="mini" type="button" hidden>⟳ تحديث</button></div>
-  <p class="hint">الثلاث خطوط مرة واحدة — الأوزان + Moisture و FA و FFA.
+  <p class="hint">الثلاث خطوط مرة واحدة — Batch No. + الأوزان + Moisture و FA و FFA.
     الوزن بخانة عشرية واحدة بيتحوّل بخانتين (110.1 → 110.11) زي دايماً.</p>
+  <p class="note" id="appnote">💡 خانات التحاليل (Moisture/FA/FFA) بتظهر في التطبيق في <b>إعدادات الخط</b> — لو مش ظاهرة، حدّث التطبيق من زرار «Update» في لوحة المزامنة (لازم v3.3).</p>
 
   <div class="card">
     <div class="row">
@@ -66,6 +67,9 @@ th{background:#eef3f0}
       <div><label>الدفعة</label><select id="bt"><option value="1">1 (ساعات 1-3)</option><option value="2">2 (ساعات 4-6)</option><option value="3">3 (ساعات 7-8)</option></select></div>
       <div id="varBox"><label>منتج الخط 3</label><select id="vr"><option value="R">Royal (6 قالب)</option><option value="L">Lemon (5 قالب)</option></select></div>
     </div>
+    <label>Batch No. (بتتسجل مرة واحدة للثلاث خطوط)</label>
+    <input id="bn" type="text" inputmode="numeric" placeholder="مثال: 3100241611">
+    <div class="note">لازم تكتبه — بينكتب في كل الخطوط التلاتة مرة واحدة ✓</div>
   </div>
 
   <div id="lines"></div>
@@ -148,6 +152,7 @@ function build(){
 function weightsOf(ln){return $$('.w[data-ln="'+ln+'"]').map(b=>b.value.trim());}
 function calc(){
   let all=[];
+  if($('#bn').value.trim()==='')all.push('Batch No. لسه فاضي');
   LINES.forEach(L=>{
     const ws=weightsOf(L.ln);
     const nums=ws.filter(x=>x!=='').map(parseFloat).filter(x=>!isNaN(x));
@@ -172,6 +177,8 @@ function rows(){
     const moi=$$('.moi[data-ln="'+L.ln+'"]')[0].value.trim();
     const faq=$$('.faq[data-ln="'+L.ln+'"]')[0].value.trim();
     const ffa=$$('.ffa[data-ln="'+L.ln+'"]')[0].value.trim();
+    const bn=$('#bn').value.trim();
+    if(bn!=='')out.push({id:'l'+L.ln+'s'+sh+'b'+bt+'_bn',val:bn,ln:L.ln});
     if(moi!=='')out.push({id:'moi'+sh+'l'+L.ln,val:moi,ln:L.ln});
     if(faq!=='')out.push({id:'faq'+sh+'l'+L.ln,val:faq,ln:L.ln});
     if(ffa!=='')out.push({id:'ffa'+sh+'l'+L.ln,val:ffa,ln:L.ln});
@@ -201,6 +208,7 @@ function beep(kind){
   try{if(navigator.vibrate)navigator.vibrate(kind==='ok'?[45,60,45]:[220,90,220]);}catch(e){}
 }
 ['sh','bt','vr'].forEach(id=>$('#'+id).addEventListener('change',()=>{build();}));
+$('#bn').addEventListener('input',calc);
 let pending=null,forced=false;
 $('#prev').addEventListener('click',async()=>{
   const b=$('#save');b.disabled=true;
@@ -249,7 +257,7 @@ $('#save').addEventListener('click',async()=>{
 $('#snd').checked=localStorage.getItem('qe_sound')!=='0';
 $('#snd').addEventListener('change',()=>{localStorage.setItem('qe_sound',$('#snd').checked?'1':'0');if($('#snd').checked)beep('ok');});
 /* ---- the version + the update button (the page is cached by the service worker) ---- */
-const VER='v2';
+const VER='v3';
 $('#ver').textContent=VER;
 function initSW(){
   if(!('serviceWorker' in navigator))return;
