@@ -152,7 +152,6 @@ function build(){
 function weightsOf(ln){return $$('.w[data-ln="'+ln+'"]').map(b=>b.value.trim());}
 function calc(){
   let all=[];
-  if($('#bn').value.trim()==='')all.push('Batch No. لسه فاضي');
   LINES.forEach(L=>{
     const ws=weightsOf(L.ln);
     const nums=ws.filter(x=>x!=='').map(parseFloat).filter(x=>!isNaN(x));
@@ -169,6 +168,22 @@ function calc(){
   else{aw.className='msg';aw.textContent='';}
   return all;
 }
+async function loadValues(){
+  const sh=$('#sh').value,bt=$('#bt').value;
+  try{
+    const plain=await load();
+    LINES.forEach(L=>{
+      const bk=bucket('l'+L.ln+'s'+sh+'b'+bt+'_c0');
+      const v=(plain.b[bk]&&plain.b[bk].v)||{};
+      weightsOf(L.ln).forEach((_,i)=>{const el=$$('.w[data-ln="'+L.ln+'"][data-i="'+i+'"]')[0];if(el)el.value=v['l'+L.ln+'s'+sh+'b'+bt+'_c'+i]||'';});
+      const moi=$$('.moi[data-ln="'+L.ln+'"]')[0];if(moi)moi.value=v['moi'+sh+'l'+L.ln]||'';
+      const faq=$$('.faq[data-ln="'+L.ln+'"]')[0];if(faq)faq.value=v['faq'+sh+'l'+L.ln]||'';
+      const ffa=$$('.ffa[data-ln="'+L.ln+'"]')[0];if(ffa)ffa.value=v['ffa'+sh+'l'+L.ln]||'';
+      if(L.ln===1){const bnv=v['l1s'+sh+'b'+bt+'_bn']||'';$('#bn').value=bnv;}
+    });
+    calc();
+  }catch(e){}
+}
 function bucket(id){const v=/l3/.test(id)?$('#vr').value:'';let m=id.match(/s(\d)b\d/);if(m)return 'S'+m[1]+v;m=id.match(/^[a-z]+(\d)l\d/);if(m)return 'S'+m[1]+v;return 'G'+v;}
 function rows(){
   const sh=$('#sh').value,bt=$('#bt').value,out=[];
@@ -178,7 +193,7 @@ function rows(){
     const faq=$$('.faq[data-ln="'+L.ln+'"]')[0].value.trim();
     const ffa=$$('.ffa[data-ln="'+L.ln+'"]')[0].value.trim();
     const bn=$('#bn').value.trim();
-    if(bn!=='')out.push({id:'l'+L.ln+'s'+sh+'b'+bt+'_bn',val:bn,ln:L.ln});
+    if(bn!==''&&L.ln!==2)out.push({id:'l'+L.ln+'s'+sh+'b'+bt+'_bn',val:bn,ln:L.ln});
     if(moi!=='')out.push({id:'moi'+sh+'l'+L.ln,val:moi,ln:L.ln});
     if(faq!=='')out.push({id:'faq'+sh+'l'+L.ln,val:faq,ln:L.ln});
     if(ffa!=='')out.push({id:'ffa'+sh+'l'+L.ln,val:ffa,ln:L.ln});
@@ -207,7 +222,7 @@ function beep(kind){
   }catch(e){}
   try{if(navigator.vibrate)navigator.vibrate(kind==='ok'?[45,60,45]:[220,90,220]);}catch(e){}
 }
-['sh','bt','vr'].forEach(id=>$('#'+id).addEventListener('change',()=>{build();}));
+['sh','bt','vr'].forEach(id=>$('#'+id).addEventListener('change',()=>{build();loadValues();}));
 $('#bn').addEventListener('input',calc);
 let pending=null,forced=false;
 $('#prev').addEventListener('click',async()=>{
@@ -249,7 +264,7 @@ $('#save').addEventListener('click',async()=>{
     let bad=0;for(const x of list){const bk=bucket(x.id);if(!check.b[bk].v||check.b[bk].v[x.id]!==x.val)bad++;}
     if(bad)throw new Error('بعض القيم مااتكتبتش ('+bad+')');
     say('تم تسجيل '+list.length+' قيمة بنجاح - افتح التطبيق أو استنى 45 ثانية','ok');beep('ok');
-    build();$('#pvCard').classList.add('hid');
+    build();loadValues();$('#pvCard').classList.add('hid');
     forced=false;$('#save').className='';$('#save').textContent='حفظ في التطبيق';
   }catch(e){say(e.message,'no');beep('no');}
   b.disabled=false;if(b.textContent==='جاري الحفظ...')b.textContent='حفظ في التطبيق';
@@ -257,7 +272,7 @@ $('#save').addEventListener('click',async()=>{
 $('#snd').checked=localStorage.getItem('qe_sound')!=='0';
 $('#snd').addEventListener('change',()=>{localStorage.setItem('qe_sound',$('#snd').checked?'1':'0');if($('#snd').checked)beep('ok');});
 /* ---- the version + the update button (the page is cached by the service worker) ---- */
-const VER='v3';
+const VER='v4';
 $('#ver').textContent=VER;
 function initSW(){
   if(!('serviceWorker' in navigator))return;
@@ -276,7 +291,7 @@ function initSW(){
   });
 }
 initSW();
-build();
+build();loadValues();
 </script>
 </body>
 </html>
