@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>تسجيل أوزان سريع - صابون</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b3d2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+:root{--ink:#12211c;--acc:#0b7a4b;--warn:#b23b3b;--line:#c9d6d0;--bg:#f4f7f5;--mut:#5d6f68}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:var(--bg);color:var(--ink);padding:14px;padding-bottom:40px}
+.wrap{max-width:640px;margin:0 auto}
+h1{font-size:20px;margin:4px 0 2px}
+p.hint{font-size:13px;color:var(--mut);margin:0 0 14px;line-height:1.6}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+label{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}
+input,select,textarea{width:100%;padding:11px;font-size:16px;border:1px solid var(--line);border-radius:8px;background:#fff;font-family:inherit}
+textarea{min-height:110px;resize:vertical;line-height:1.7}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>div{flex:1 1 90px}
+button{width:100%;padding:14px;font-size:17px;font-weight:700;border:0;border-radius:10px;background:var(--acc);color:#fff;margin-top:14px}
+button.sec{background:#eef3f0;color:var(--ink);border:1px solid var(--line);font-size:15px;font-weight:600;padding:11px}
+button:disabled{opacity:.55}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:center}
+th{background:#eef3f0}
+.msg{margin-top:12px;padding:11px;border-radius:8px;font-size:14px;display:none}
+.msg.ok{display:block;background:#e4f5ec;border:1px solid #7fbf9d;color:#0b5c38}
+.msg.no{display:block;background:#fdeaea;border:1px solid #dfa0a0;color:#8d2b2b}
+.note{font-size:12px;color:var(--mut);margin-top:8px;line-height:1.6}
+.hid{display:none}
+.back{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:8px;text-align:center;font-size:13px;color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>تسجيل أوزان سريع</h1>
+  <p class="hint">اكتب الأوزان وبتتسجل في التطبيق على طول (الديتا مشفّرة، ونفس نظام المزامنة).
+    <br>الوزن بخانة عشرية واحدة بيتحوّل بخانتين (110.1 → 110.11) زي دايماً.</p>
+
+  <div class="card">
+    <div class="row">
+      <div><label>الشِفت</label><select id="sh"><option value="1">A — 08:30</option><option value="2">B — 17:30</option><option value="3">C — 00:30</option></select></div>
+      <div><label>الخط</label><select id="ln"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
+      <div><label>الدفعة</label><select id="bt"><option value="1">1 (ساعات 1-3)</option><option value="2">2 (ساعات 4-6)</option><option value="3">3 (ساعات 7-8)</option></select></div>
+    </div>
+    <div id="varBox" class="hid"><label>منتج الخط 3</label><select id="vr"><option value="R">Royal</option><option value="L">Lemon</option></select></div>
+    <label>الأوزان (واحد في كل سطر، أو مسافين/فاصلة)</label>
+    <textarea id="w" placeholder="110.2&#10;110.0&#10;109.1"></textarea>
+    <div class="note">الخط 1 = 8 قالب · الخط 2 = 10 قالب · الخط 3 = 6 قالب</div>
+    <button class="sec" id="prev">معاينة قبل الحفظ</button>
+    <button id="save">حفظ في التطبيق</button>
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <div class="card hid" id="pvCard">
+    <label>المعاينة (قبل → بعد)</label>
+    <div id="pv"></div>
+  </div>
+</div>
+<div class="back">الداتا مشفّرة AES-GCM · PIN 2780</div>
+<script>
+const CLOUD='https://soap-lab-shift-sync-default-rtdb.europe-west1.firebasedatabase.app/lab/soap-log-7c4e19a83b2f46d0a95e17cb.json';
+const PIN_DEFAULT='2780';
+const $=s=>document.querySelector(s);
+const b64=b=>btoa(String.fromCharCode.apply(null,new Uint8Array(b)));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function key(salt,pin){
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:unb64(salt),iterations:120000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function load(){
+  const r=await fetch(CLOUD,{cache:'no-store'});
+  if(!r.ok)throw new Error('تعذر قراءة الملف ('+r.status+')');
+  const b=await r.json();
+  if(!b||b.enc!=='aesgcm')throw new Error('الملف مش مشفّر -Recipient غير صحيح');
+  const k=await key(b.salt,pin());
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(b.iv)},k,unb64(b.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+async function save(plain){
+  const salt=b64(crypto.getRandomValues(new Uint8Array(16)));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const k=await key(salt,pin());
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify(plain)));
+  const out={v:2,sv:2,enc:'aesgcm',salt:salt,iv:b64(iv),ct:b64(new Uint8Array(ct))};
+  const r=await fetch(CLOUD,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(out)});
+  if(!r.ok)throw new Error('الكتابة رفضت ('+r.status+')');
+}
+const pin=()=>($('#pin')&&$('#pin').value)||PIN_DEFAULT;
+const fixW=v=>{v=String(v==null?'':v).trim();if(/^-?\d+\.\d$/.test(v))return v+'1';if(/^-?\d+$/.test(v))return v+'.01';return v;};
+function bucket(id){const v=/l3/.test(id)?$('#vr').value:'';let m=id.match(/s(\d)b\d/);if(m)return 'S'+m[1]+v;m=id.match(/^[a-z]+(\d)l\d/);if(m)return 'S'+m[1]+v;return 'G'+v;}
+function vals(){
+  const sh=$('#sh').value,ln=$('#ln').value,bt=$('#bt').value;
+  const raw=$('#w').value.split(/[\s,;\n]+/).map(s=>s.trim()).filter(s=>s!=='');
+  return raw.map((v,i)=>({id:'l'+ln+'s'+sh+'b'+bt+'_c'+i,val:fixW(v),raw:v}));
+}
+function say(txt,ok){const m=$('#msg');m.className='msg '+(ok?'ok':'no');m.textContent=txt;if(ok)setTimeout(()=>{m.className='msg'},6000);}
+$('#ln').addEventListener('change',()=>{$('#varBox').classList.toggle('hid',$('#ln').value!=='3');});
+let pending=null;
+$('#prev').addEventListener('click',async()=>{
+  const b=$('#save');b.disabled=true;
+  try{
+    const plain=await load();const list=vals();
+    if(!list.length)throw new Error('مفيش أوزان مكتوبة');
+    const rows=list.map(x=>{const bk=bucket(x.id);const old=(plain.b[bk]&&plain.b[bk].v&&plain.b[bk].v[x.id])||'-';return {bk,id:x.id,old:old,val:x.val,raw:x.raw};});
+    pending=rows;
+    $('#pvCard').classList.remove('hid');
+    $('#pv').innerHTML='<table><tr><th>الخانة</th><th>قبل</th><th>بعد</th></tr>'+rows.map(r=>'<tr><td>'+r.id+'</td><td>'+r.old+'</td><td><b>'+r.val+'</b></td></tr>').join('')+'</table>';
+    say('المعاينة جاهزة - اضغط حفظ',true);
+  }catch(e){say(e.message,false);pending=null;}
+  b.disabled=false;
+});
+$('#save').addEventListener('click',async()=>{
+  const b=$('#save');b.disabled=true;b.textContent='جاري الحفظ...';
+  try{
+    const plain=await load();const list=vals();
+    if(!list.length)throw new Error('مفيش أوزان مكتوبة');
+    const now=Date.now();let n=0;
+    for(const x of list){
+      const bk=bucket(x.id);
+      plain.b=plain.b||{};const bb=plain.b[bk]||(plain.b[bk]={v:{},t:{}});bb.v=bb.v||{};
+      bb.v[x.id]=x.val;n++;
+      plain.ts=plain.ts||{};plain.ts[bk]=now;
+    }
+    await save(plain);
+    const check=await load();
+    let bad=0;for(const x of list){const bk=bucket(x.id);if(!check.b[bk].v||check.b[bk].v[x.id]!==x.val)bad++;}
+    if(bad)throw new Error('بعض القيم مااتكتبتش ('+bad+')');
+    say('تم تسجيل '+n+' وزن بنجاح - افتح التطبيق أو استنى 45 ثانية',true);
+    $('#w').value='';$('#pvCard').classList.add('hid');
+  }catch(e){say(e.message,false);}
+  b.disabled=false;b.textContent='حفظ في التطبيق';
+});
+</script>
+</body>
+</html>
